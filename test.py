@@ -28,9 +28,41 @@ def g(fy:int,h:float,tw:float,bf:float,tf:float):
     return limit_state
 
 
+def preprocessamento(bd:pd.DataFrame,drop=None) ->pd.DataFrame:
+    '''
+    Pre processamento dos dados
+    bd: Banco de Dados
+    '''
+
+    if drop != None:
+        bd = bd.drop(columns=drop)
+
+
+    bd = bd.sort_values(['prob'],ascending=False)
+    saida = pd.DataFrame()
+
+    prob = bd['prob'].drop_duplicates()
+
+    for i in prob:
+        print(i)
+
+        fil = bd[bd['prob']<=i]
+
+        fil['prob'] = fil['prob'].apply(lambda x:i)
+
+        saida = pd.concat([saida,fil],ignore_index=True)
+
+
+    return saida
+
+
 dados('BancoDados.xlsx')
 
 bd = dados('BancoDados.xlsx')
+
+prob= []
+
+
 
 for i in range(bd['bitola'].shape[0]):
     limite = g(35,bd['h'][i],bd['tw'][i],bd['bf'][i],bd['tf'][i])
@@ -39,7 +71,7 @@ for i in range(bd['bitola'].shape[0]):
     stochastic_model = ra.StochasticModel()
 
     stochastic_model.addVariable(ra.Lognormal("q", 5, 10))
-    stochastic_model.addVariable(ra.Constant("L", 150))
+    stochastic_model.addVariable(ra.Constant("L", 300))
 
     options = ra.AnalysisOptions()
     options.setPrintOutput(False)
@@ -65,4 +97,17 @@ for i in range(bd['bitola'].shape[0]):
 
     cmc.run()
     failure = cmc.getFailure()
-    print(failure)
+
+    prob.append(round(failure,2))
+
+bd['prob'] = prob
+
+
+saida = preprocessamento(bd,drop=['h','bf','tw','tf'])
+
+
+
+saida.to_excel('saida.xlsx')
+#bd.to_excel('saida.xlsx')
+
+#*******
