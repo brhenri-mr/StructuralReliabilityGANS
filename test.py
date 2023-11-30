@@ -28,10 +28,11 @@ def g(fy:int,h:float,tw:float,bf:float,tf:float):
     return limit_state
 
 
-def preprocessamento(bd:pd.DataFrame,drop=None) ->pd.DataFrame:
+def preprocessamento(bd:pd.DataFrame,drop=None,multiplo = 4) ->pd.DataFrame:
     '''
     Pre processamento dos dados
     bd: Banco de Dados
+    multiplo: quantidade de elementos repetidos no enchimento dos dos
     '''
 
     if drop != None:
@@ -44,13 +45,12 @@ def preprocessamento(bd:pd.DataFrame,drop=None) ->pd.DataFrame:
     prob = bd['prob'].drop_duplicates()
 
     for i in prob:
-        print(i)
 
         fil = bd[bd['prob']<=i]
 
         fil['prob'] = fil['prob'].apply(lambda x:i)
-
-        saida = pd.concat([saida,fil],ignore_index=True)
+        for _ in range(multiplo):
+            saida = pd.concat([saida,fil],ignore_index=True)
 
 
     return saida
@@ -105,7 +105,7 @@ bd['prob'] = prob
 
 saida = preprocessamento(bd,drop=['h','bf','tw','tf'])
 
-
+print(saida[saida['prob']==0.74])
 
 saida.to_excel('saida.xlsx')
 #bd.to_excel('saida.xlsx')
