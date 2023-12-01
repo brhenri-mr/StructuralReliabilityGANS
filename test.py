@@ -1,6 +1,8 @@
 import pandas as pd
 import pystra as ra
-
+from PIL import Image,ImageOps
+import numpy as np
+import os
 
 #coletar dados do excel com os valores do perfil 
 
@@ -28,7 +30,7 @@ def g(fy:int,h:float,tw:float,bf:float,tf:float):
     return limit_state
 
 
-def preprocessamento(bd:pd.DataFrame,drop=None,multiplo = 4) ->pd.DataFrame:
+def preprocessamento(bd:pd.DataFrame,drop=None,multiplo = 4,path=r'C:\Users\Breno HM Rodrigues\Documents\GitHub\StructuralReliabilityGANS\Imagens') ->pd.DataFrame:
     '''
     Pre processamento dos dados
     bd: Banco de Dados
@@ -42,8 +44,10 @@ def preprocessamento(bd:pd.DataFrame,drop=None,multiplo = 4) ->pd.DataFrame:
     bd = bd.sort_values(['prob'],ascending=False)
     saida = pd.DataFrame()
 
+    nomes = bd['bitola']
     prob = bd['prob'].drop_duplicates()
 
+    #Gerar tabela bitola/Prob
     for i in prob:
 
         fil = bd[bd['prob']<=i]
@@ -52,6 +56,23 @@ def preprocessamento(bd:pd.DataFrame,drop=None,multiplo = 4) ->pd.DataFrame:
         for _ in range(multiplo):
             saida = pd.concat([saida,fil],ignore_index=True)
 
+    
+    #Passando Bitola Para Imagem
+    
+    for nome in nomes:
+        print('rodando primeira imagem')
+        try:
+            img = Image.open(os.path.join(path,f'{nome}.png'))
+        except:
+            nome = nome.replace('.',',')
+            img = Image.open(os.path.join(path,f'{nome}.png'))
+
+        img = img.resize((125,125))
+        
+        saida = saida.replace(nome.replace('.',','),np.array(ImageOps.grayscale(img)).tostring())
+        print('finalizado')
+        print('****************************************')
+    
 
     return saida
 
@@ -63,8 +84,10 @@ bd = dados('BancoDados.xlsx')
 prob= []
 
 
+print(bd)
 
 for i in range(bd['bitola'].shape[0]):
+    print('ok')
     limite = g(35,bd['h'][i],bd['tw'][i],bd['bf'][i],bd['tf'][i])
 
 
@@ -105,9 +128,11 @@ bd['prob'] = prob
 
 saida = preprocessamento(bd,drop=['h','bf','tw','tf'])
 
-print(saida[saida['prob']==0.74])
+print(saida.shape)
 
-saida.to_excel('saida.xlsx')
+
+
+saida.to_csv('saida.csv')
 #bd.to_excel('saida.xlsx')
 
 #*******
