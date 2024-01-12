@@ -12,3 +12,5 @@ The core of ​​the project is to provide a generative neural network (GANS) t
 - pystra
 
 The calculation of the probability of failure constitutes the determination of the labels for each profile. The methodology selected for determining the probability of failure was the Monte Carlo method or simulation because it is highly generalizable. 
+
+![equation](https://latex.codecogs.com/gif.image?\inline&space;\dpi{110}g(X)=\sigma_{R}-\sigma_{S})
